@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>대실마을 스마트팜 대시보드</title>
 
-  <!-- Assets -->
+  <!-- Font & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,328 +13,480 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+    /* ─────────── Color Scheme (light & dark) ─────────── */
     :root {
-      --accent: #7c3aed;        /* primary purple */
-      --accent-light: #ede9fe;
-      --bg: #f7f8fa;           /* light grey BG */
-      --surface: #ffffff;       /* white cards */
-      --text: #0f172a;         /* dark text */
-      --muted: #64748b;        /* grey text */
+      --accent: #7c3aed;
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
       --green: #22c55e;
       --red: #ef4444;
       --radius: 1.2rem;
       --shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
     }
+    [data-theme="dark"] {
+      --bg: #14171f;
+      --surface: #1e222d;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-      height: 100vh; display: flex;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      transition: background .3s ease, color .3s ease;
     }
-    /* ───── 사이드바 ───── */
+
+    /* ─────────── Sidebar ─────────── */
     #sidebar {
-      width: 80px; background: var(--accent); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 1rem 0;
+      width: 80px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 0;
     }
-    #sidebar .logo { font-size: 1.7rem; margin-bottom: 2rem; }
-    .nav-btn { width: 48px; height: 48px; border: none; background: transparent; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 12px; margin-bottom: 1rem; cursor: pointer; transition: background .25s; }
+    #sidebar .logo { width:48px; height:48px; margin-bottom:2rem; object-fit:contain; }
+    .nav-btn {
+      width: 48px; height: 48px; border: none; background: transparent; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px; margin-bottom: 1rem; cursor: pointer; transition: background .25s;
+    }
     .nav-btn.active, .nav-btn:hover { background: rgba(255,255,255,.18); }
     #sidebar .bottom { margin-top: auto; }
 
-    /* 컨텐츠 */
+    /* ─────────── Content Wrapper ─────────── */
     #content { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
-    /* 헤더 */
-    header { background: var(--surface); box-shadow: var(--shadow); padding: .75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
-    .search-box { flex: 1; max-width: 340px; display: flex; align-items: center; background: var(--bg); padding: .5rem .75rem; border-radius: 999px; gap: .5rem; color: var(--muted); }
-    .search-box input { border: none; outline: none; background: transparent; font-size: .9rem; flex: 1; }
-    .header-actions { display: flex; align-items: center; gap: 1rem; }
-    .icon-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: var(--bg); color: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .icon-btn:hover { opacity: .85; }
-    #profileBtn img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    /* Header */
+    header {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: .65rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .left-group { display:flex; align-items:center; gap:1rem; }
+    .search-box {
+      width: clamp(180px, 30vw, 340px);
+      display: flex; align-items: center;
+      background: var(--bg);
+      padding: .45rem .75rem; border-radius: 999px; gap: .55rem; color: var(--muted);
+    }
+    .search-box input { border:none; outline:none; background:transparent; flex:1; font-size:.9rem; }
+    .header-actions { display:flex; align-items:center; gap:.8rem; position:relative; }
+    .icon-btn {
+      width: 36px; height: 36px; border:none; border-radius:50%; background:var(--bg); color:var(--accent);
+      display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;
+    }
+    .icon-btn:hover { opacity:.85; }
+    .icon-btn img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 
-    /* 레이아웃 */
-    #layout { flex: 1; overflow-y: auto; padding: 1.5rem 1.25rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; }
+    /* Notification dropdown */
+    #notifPanel {
+      position:absolute; right:0; top:44px; width:260px;
+      background:var(--surface); box-shadow:var(--shadow); border-radius:var(--radius);
+      display:none; flex-direction:column; padding:.75rem 0; z-index:150;
+    }
+    #notifPanel.show { display:flex; }
+    .notif-item { padding:.5rem 1rem; font-size:.85rem; color:var(--text); display:flex; gap:.6rem; align-items:center; }
+    .notif-item i { color:var(--accent); }
+    .notif-item:not(:last-child){ border-bottom:1px solid var(--bg); }
 
-    .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem; position: relative; }
+    /* Responsive grid */
+    #layout {
+      flex:1; overflow-y:auto; padding:1.3rem 1.2rem;
+      display:grid; grid-template-columns: 1fr 320px; gap:1.3rem;
+      transition:grid-template-columns .3s ease;
+    }
+    @media (orientation:portrait) { #layout { grid-template-columns: 1fr; } }
 
-    /* 배너 */
-    .banner { display: flex; align-items: center; gap: 1.2rem; }
-    .banner .info { flex: 1; }
-    .banner h2 { margin: 0 0 .5rem; font-size: 1.25rem; font-weight: 700; }
-    .banner p { margin: 0; font-size: .9rem; color: var(--muted); }
-    .banner .meta { margin-top: .8rem; font-size: .85rem; display: flex; gap: 1rem; font-weight: 600; }
+    .card { background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:1.2rem; position:relative; }
 
-    /* 센서 구역 */
-    .section-title { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 .75rem; color: var(--text); }
-    .sensor-wrap { display: grid; grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); gap: 1rem; }
-    .sensor-card i { font-size: 2rem; color: var(--accent); }
-    .sensor-card h3 { font-size: .8rem; color: var(--muted); margin: .5rem 0 .25rem; }
-    .sensor-card p { margin: 0; font-size: 1.3rem; font-weight: 700; }
+    /* Banner */
+    .banner { display:flex; align-items:center; gap:1.2rem; }
+    .banner .info { flex:1; }
+    .banner h2 { margin:0 0 .5rem; font-size:1.3rem; font-weight:700; }
+    .banner p { margin:0; font-size:.9rem; color:var(--muted); }
+    .banner .meta { margin-top:.8rem; font-size:.82rem; display:flex; gap:1rem; font-weight:600; color:var(--text); }
+    .banner .meta i { margin-right:4px; }
 
-    /* 차트 */
-    #chartCard { padding: 1rem; }
-    #envChart { width: 100%; height: 140px; }
+    /* Sensor cards */
+    .sensor-section { margin-top:1.2rem; }
+    .sensor-section h3 { margin:0 0 .6rem; font-size:.95rem; color:var(--muted); font-weight:600; }
+    .sensor-wrap { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:1rem; }
+    .sensor-card { cursor:pointer; transition:transform .15s; }
+    .sensor-card:hover { transform:translateY(-2px); }
+    .sensor-card i { font-size:1.9rem; color:var(--accent); }
+    .sensor-card h4 { font-size:.8rem; color:var(--muted); margin:.4rem 0 .2rem; }
+    .sensor-card p { margin:0; font-size:1.3rem; font-weight:700; }
 
-    /* 디바이스 */
-    .devices-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; }
-    .device-tile { border-radius: var(--radius); padding: 1rem; color: #fff; position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: 90px; cursor: pointer; }
-    .device-tile h4 { margin: 0; font-size: .9rem; font-weight: 600; }
-    .tile-btn { position: absolute; top: 10px; right: 10px; width: 42px; height: 22px; background: rgba(255,255,255,.4); border-radius: 11px; transition: background .25s; }
-    .tile-btn::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition: transform .25s; }
-    .tile-btn.active { background: rgba(255,255,255,.75); }
-    .tile-btn.active::after { transform: translateX(20px); }
+    /* Chart (크기 고정) */
+    #chartCard { padding:1rem; margin-top:10px; height:280px; overflow:hidden; }
+    #envChart { width:100% !important; height:100% !important; display:block; }
+    .range-select { display:flex; gap:.6rem; margin-bottom:.6rem; }
+    .range-select button { flex:1; padding:.4rem; font-size:.75rem; border:none; border-radius:.6rem; background:var(--bg); color:var(--text); cursor:pointer; transition:background .2s; }
+    .range-select button.active, .range-select button:hover { background: var(--accent-light); }
 
-    /* 멤버 */
-    .member-list { display: flex; gap: .75rem; flex-wrap: wrap; }
-    .member { text-align: center; font-size: .75rem; color: var(--muted); }
-    .member img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: .25rem; }
+    /* Devices */
+    .devices-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .device-tile{
+  border-radius: var(--radius);
+  padding: 1rem;            /* 위·아래 균등 패딩 */
+  color:#fff;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;   /* ← 가로 기준 왼쪽 정렬 */
+  justify-content:flex-start; /* ← 세로 기준 상단 정렬 */
+}
 
-    /* 모달 공통 */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 500; }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--surface); padding: 2rem 2.5rem; border-radius: var(--radius); width: min(90%,420px); box-shadow: var(--shadow); animation: pop .25s ease; }
+    .device-tile h4{
+  margin:0 0 8px 0;        /* 상단 여백 제거, 아래만 8px */
+  font-size:.8rem;
+  font-weight:600;
+  text-align:left;          /* ← 텍스트 왼쪽 정렬 */
+}
+
+    .tile-btn { position:absolute; top:10px; right:10px; width:42px; height:22px; background:rgba(255,255,255,.4); border-radius:11px; cursor:pointer; transition:background .25s; }
+    .tile-btn::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform .25s; }
+    .tile-btn.active { background:rgba(255,255,255,.75); }
+    .tile-btn.active::after { transform:translateX(20px); }
+
+    /* Members */
+    .member-list { display:flex; gap:.75rem; flex-wrap:wrap; }
+    .member { text-align:center; font-size:.75rem; color:var(--muted); width:56px; }
+    .member img { width:48px; height:48px; border-radius:50%; object-fit:cover; margin-bottom:.3rem; }
+
+    /* Modal */
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; z-index:200; }
+    .modal.show { display:flex; }
+    .modal-content { background:var(--surface); padding:2rem 2.5rem; border-radius:var(--radius); width:min(90%,400px); box-shadow:var(--shadow); animation:pop .25s ease; margin:auto; }
     @keyframes pop { 0%{transform:scale(.92);opacity:0;} 100%{transform:scale(1);opacity:1;} }
-    .modal-content h2 { margin: 0 0 1rem; font-size: 1.2rem; text-align: center; }
-    .modal-content .form-field { display: flex; flex-direction: column; gap: .25rem; margin-bottom: 1rem; }
-    .modal-content label { font-size: .85rem; color: var(--muted); }
-    .modal-content input[type="number"], .modal-content input[type="time"] { padding: .7rem 1rem; border-radius: .6rem; border: 1px solid #cbd5e1; font-size: .9rem; }
-    .modal-content button { padding: .8rem; width: 100%; border: none; border-radius: .75rem; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+    .modal-content h2 { margin:0 0 1.5rem; font-size:1.3rem; text-align:center; }
+    .modal-content form { display:flex; flex-direction:column; gap:1rem; }
+    .modal-content input { padding:.8rem 1rem; border-radius:.75rem; border:1px solid #cbd5e1; font-size:.9rem; }
+    .modal-content button { padding:.8rem; border:none; border-radius:.75
 
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
 <body>
-  <!-- 사이드바 -->
+  <!-- Sidebar -->
   <aside id="sidebar">
-    <div class="logo"><i class="fa-solid fa-leaf"></i></div>
+    <img src="KakaoTalk_20230508_120638486.png" alt="AISEED 로고" class="logo" />
     <nav>
       <button class="nav-btn active"><i class="fa-solid fa-house"></i></button>
       <button class="nav-btn"><i class="fa-solid fa-sliders"></i></button>
       <button class="nav-btn"><i class="fa-solid fa-droplet"></i></button>
       <button class="nav-btn"><i class="fa-solid fa-chart-column"></i></button>
     </nav>
-    <div class="bottom"><button class="nav-btn"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+    <div class="bottom">
+      <button class="nav-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
   </aside>
 
-  <!-- 컨텐츠 -->
+  <!-- Content -->
   <div id="content">
-    <!-- 헤더 -->
+    <!-- Header -->
     <header>
-      <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" placeholder="검색..." /></div>
+      <div class="left-group">
+        <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" placeholder="검색..." /></div>
+      </div>
       <div class="header-actions">
-        <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-        <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
-        <button class="icon-btn" id="profileBtn"><img src="https://placekitten.com/32/32" alt="profile" /></button>
+        <button class="icon-btn" id="refreshBtn"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="icon-btn" id="themeBtn"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <button class="icon-btn" id="notifBtn"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn" id="profileBtn"><img src="https://picsum.photos/32?random=1" alt="me" /></button>
+
+        <!-- Notification dropdown (showcase) -->
+        <div id="notifPanel">
+          <!-- Demo items -->
+          <div class="notif-item"><i class="fa-solid fa-temperature-high"></i> 온도 높음 경고</div>
+          <div class="notif-item"><i class="fa-solid fa-fan"></i> 직원1이 난방 25°C 수동 설정</div>
+          <div class="notif-item"><i class="fa-solid fa-droplet"></i> 토양 수분 낮음</div>
+          <div class="notif-item"><i class="fa-solid fa-cloud-rain"></i> 강우 감지</div>
+          <div class="notif-item"><i class="fa-solid fa-lightbulb"></i> LED 조명 자동 ON</div>
+          <!-- ↑ 데모 알림. 실제 구현 시 삭제 -->
+        </div>
       </div>
     </header>
 
-    <!-- 메인 레이아웃 -->
+    <!-- Main Layout -->
     <div id="layout">
-      <!-- 왼쪽 -->
+      <!-- Left Column -->
       <section>
-        <!-- 배너 -->
+        <!-- Banner -->
         <div class="card banner">
           <div class="info">
             <h2>안녕하세요!</h2>
             <p>오늘도 대실마을 스마트팜과 함께하세요.</p>
             <div class="meta">
               <span><i class="fa-solid fa-location-dot"></i> 전라남도 나주시</span>
-              <span><i class="fa-solid fa-temperature-low"></i> <span id="metaTemp">--°C</span></span>
-              <span id="metaWeather"><i class="fa-solid fa-cloud"></i> 맑음</span>
+              <span id="weatherMeta"><i class="fa-solid fa-temperature-low"></i> --°C · --%</span>
             </div>
           </div>
-          <img src="https://placehold.co/120x120?text=Farm" alt="illustration" style="width:120px;height:120px;border-radius:1rem;object-fit:cover;" />
+          <img src="https://picsum.photos/120?random=2" alt="illust" style="width:120px;height:120px;border-radius:1rem;object-fit:cover;" />
         </div>
 
-        <!-- 내부 센서 -->
-        <h3 class="section-title">내부 센서</h3>
-        <div class="sensor-wrap" id="internalSensors">
-          <div class="card sensor-card"><i class="fa-solid fa-temperature-three-quarters"></i><h3>온도</h3><p id="in-temp">--°C</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-droplet"></i><h3>습도</h3><p id="in-hum">--%</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-seedling"></i><h3>토양수분</h3><p id="in-soil">--%</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-trowel"></i><h3>토양장력</h3><p id="in-tension">-- kPa</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-cloud"></i><h3>CO₂</h3><p id="in-co2">-- ppm</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-sun"></i><h3>일사량</h3><p id="in-solar">-- W/㎡</p></div>
+        <!-- Internal Sensors -->
+        <div class="sensor-section">
+          <h3>내부 센서</h3>
+          <div class="sensor-wrap" id="internalSensors"></div>
         </div>
 
-        <!-- 외부 센서 -->
-        <h3 class="section-title">외부 센서</h3>
-        <div class="sensor-wrap" id="externalSensors">
-          <div class="card sensor-card"><i class="fa-solid fa-compass"></i><h3>풍향</h3><p id="out-dir">--°</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-wind"></i><h3>풍속</h3><p id="out-speed">-- m/s</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-temperature-three-quarters"></i><h3>온도</h3><p id="out-temp">--°C</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-droplet"></i><h3>습도</h3><p id="out-hum">--%</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-sun"></i><h3>일사량</h3><p id="out-solar">-- W/㎡</p></div>
-          <div class="card sensor-card"><i class="fa-solid fa-cloud-rain"></i><h3>강우</h3><p id="out-rain">--</p></div>
+        <!-- External Sensors -->
+        <div class="sensor-section">
+          <h3>외부 센서</h3>
+          <div class="sensor-wrap" id="externalSensors"></div>
         </div>
 
-        <!-- 작은 차트 -->
-        <div class="card" id="chartCard"><canvas id="envChart"></canvas></div>
+        <!-- Chart -->
+        <div class="card" id="chartCard">
+          <div class="range-select">
+            <button class="active" data-range="60">1분</button>
+            <button data-range="1800">30분</button>
+            <button data-range="3600">1시간</button>
+            <button data-range="86400">1일</button>
+          </div>
+          <canvas id="envChart"></canvas>
+        </div>
       </section>
 
-      <!-- 오른쪽 패널 -->
+      <!-- Right Panel -->
       <section style="display:flex;flex-direction:column;gap:1.25rem;">
-        <!-- 디바이스 12개 -->
+        <!-- Devices -->
         <div class="card">
-          <h2 style="margin:0 0 1rem;font-size:1rem;">제어 장치</h2>
-          <div class="devices-grid" id="deviceGrid">
-            <!-- 타일들 JS 생성 -->
-          </div>
+          <h3 style="margin:0 0 1rem;font-size:1rem;">제어 장치</h3>
+          <div class="devices-grid" id="devicesGrid"></div>
         </div>
-        <!-- 멤버 -->
+
+        <!-- Members -->
         <div class="card">
-          <h2 style="margin:0 0 .75rem;font-size:1rem;">멤버</h2>
+          <h3 style="margin:0 0 1rem;font-size:1rem;">멤버</h3>
           <div class="member-list" id="memberList"></div>
         </div>
       </section>
     </div>
   </div>
 
-  <!-- 로그인 모달 -->
+  <!-- Login Modal -->
   <div class="modal" id="loginModal">
-    <div class="modal-content"><h2>로그인</h2><form id="loginForm"><input type="text" placeholder="아이디" required /><input type="password" placeholder="비밀번호" required /><button type="submit">로그인</button></form></div>
+    <div class="modal-content">
+      <h2>로그인</h2>
+      <form id="loginForm">
+        <input type="text" placeholder="아이디" required />
+        <input type="password" placeholder="비밀번호" required />
+        <button type="submit">로그인</button>
+      </form>
+    </div>
   </div>
 
-  <!-- 디바이스 설정 모달 -->
-  <div class="modal" id="deviceModal"><div class="modal-content" id="deviceModalContent"></div></div>
-
-  <!-- 스크립트 -->
   <script>
-    /* --------------------------- 센서 시뮬레이션 --------------------------- */
-    const sensors = {
-      internal: { temp: 24.3, hum: 64.2, soil: 52.1, tension: 12.3, co2: 820, solar: 320 },
-      external: { dir: 180, speed: 3.4, temp: 18.6, hum: 55.7, solar: 600, rain: false }
-    };
-    function updateSensorUI(){
-      // 내부
-      document.getElementById('in-temp').textContent = sensors.internal.temp.toFixed(1)+'°C';
-      document.getElementById('in-hum').textContent  = sensors.internal.hum.toFixed(1)+'%';
-      document.getElementById('in-soil').textContent = sensors.internal.soil.toFixed(1)+'%';
-      document.getElementById('in-tension').textContent = sensors.internal.tension.toFixed(1)+' kPa';
-      document.getElementById('in-co2').textContent = sensors.internal.co2.toFixed(1)+' ppm';
-      document.getElementById('in-solar').textContent = sensors.internal.solar.toFixed(1)+' W/㎡';
-      // 외부
-      document.getElementById('out-dir').textContent = sensors.external.dir.toFixed(0)+'°';
-      document.getElementById('out-speed').textContent = sensors.external.speed.toFixed(1)+' m/s';
-      document.getElementById('out-temp').textContent = sensors.external.temp.toFixed(1)+'°C';
-      document.getElementById('out-hum').textContent = sensors.external.hum.toFixed(1)+'%';
-      document.getElementById('out-solar').textContent = sensors.external.solar.toFixed(1)+' W/㎡';
-      document.getElementById('out-rain').textContent = sensors.external.rain ? '감지' : '없음';
-      // 배너 메타 온도
-      document.getElementById('metaTemp').textContent = sensors.external.temp.toFixed(1)+'°C';
-    }
-    updateSensorUI();
-    setInterval(()=>{
-      // 랜덤 업데이트
-      sensors.internal.temp = 20+Math.random()*8;
-      sensors.internal.hum = 50+Math.random()*30;
-      sensors.internal.soil = 40+Math.random()*30;
-      sensors.internal.tension = 10+Math.random()*10;
-      sensors.internal.co2 = 700+Math.random()*400;
-      sensors.internal.solar = 200+Math.random()*200;
-      sensors.external.dir = Math.random()*360;
-      sensors.external.speed = Math.random()*6;
-      sensors.external.temp = 15+Math.random()*10;
-      sensors.external.hum = 40+Math.random()*40;
-      sensors.external.solar = 500+Math.random()*300;
-      sensors.external.rain = Math.random() < 0.1;
-      updateSensorUI();
-      pushChartPoint();
-    }, 30000);
-
-    /* --------------------------- 멤버 --------------------------- */
-    const members=[
-      {name:'관리자', img:'https://placebear.com/48/48'},
-      {name:'직원1', img:'https://placekitten.com/49/49'},
-      {name:'직원2', img:'https://placebear.com/49/49'},
-      {name:'직원3', img:'https://placekitten.com/50/50'}
+    /* ─────────── Data & helpers ─────────── */
+    const internalSensorDefs = [
+      { key:'temp', label:'온도', icon:'fa-temperature-three-quarters', unit:'°C', color:'#7c3aed' },
+      { key:'hum', label:'습도', icon:'fa-droplet', unit:'%', color:'#22c55e' },
+      { key:'soil', label:'토양수분', icon:'fa-seedling', unit:'%', color:'#14b8a6' },
+      { key:'soilTension', label:'토양장력', icon:'fa-gauge', unit:'kPa', color:'#f97316' },
+      { key:'co2', label:'CO₂', icon:'fa-cloud', unit:'ppm', color:'#ef4444' },
+      { key:'rad', label:'일사량', icon:'fa-sun', unit:'W/㎡', color:'#facc15' },
     ];
-    const memberList=document.getElementById('memberList');
-    members.forEach(m=>{
-      const div=document.createElement('div'); div.className='member';
+    const externalSensorDefs = [
+      { key:'windDir', label:'풍향', icon:'fa-compass', unit:'°', color:'#0ea5e9' },
+      { key:'windSpd', label:'풍속', icon:'fa-wind', unit:'m/s', color:'#38bdf8' },
+      { key:'outTemp', label:'온도', icon:'fa-temperature-low', unit:'°C', color:'#7c3aed' },
+      { key:'outHum', label:'습도', icon:'fa-droplet', unit:'%', color:'#22c55e' },
+      { key:'outRad', label:'일사량', icon:'fa-sun', unit:'W/㎡', color:'#facc15' },
+      { key:'rain', label:'강우', icon:'fa-cloud-rain', unit:'', color:'#0ea5e9' },
+    ];
+
+    const deviceDefs = [
+      { key:'fan', label:'유동팬', color:'#8b5cf6' },
+      { key:'irrigation', label:'관수', color:'#f59e0b' },
+      { key:'heater', label:'난방', color:'#ef4444' },
+      { key:'dehumidifier', label:'제습', color:'#14b8a6' },
+      { key:'thermalOpen', label:'보온열림', color:'#10b981' },
+      { key:'thermalClose', label:'보온닫힘', color:'#0284c7' },
+      { key:'shadeOpen', label:'차광열림', color:'#f472b6' },
+      { key:'shadeClose', label:'차광닫힘', color:'#8b5cf6' },
+      { key:'roofLOpen', label:'천창좌열림', color:'#eab308' },
+      { key:'roofLClose', label:'천창좌닫힘', color:'#4ade80' },
+      { key:'roofROpen', label:'천창우열림', color:'#38bdf8' },
+      { key:'roofRClose', label:'천창우닫힘', color:'#f97316' },
+    ];
+
+    const members = [
+      { name:'관리자', img:'https://picsum.photos/48?random=3' },
+      { name:'직원1', img:'https://picsum.photos/48?random=4' },
+      { name:'직원2', img:'https://picsum.photos/48?random=5' },
+      { name:'직원3', img:'https://picsum.photos/seed/animal/48' },
+    ];
+
+    const sensorData = {};
+    const sensorHistory = {};
+    [...internalSensorDefs, ...externalSensorDefs].forEach(d=>{ sensorData[d.key]=0; sensorHistory[d.key]=[]; });
+
+    let currentSensors = ['temp','hum'];
+    let currentRangeSec = 3600;
+
+    /* ─────────── Render functions ─────────── */
+    function createSensorCard(def) {
+      const card = document.createElement('div');
+      card.className = 'card sensor-card';
+      card.dataset.sensor = def.key;
+      card.innerHTML = `<i class="fa-solid ${def.icon}"></i><h4>${def.label}</h4><p id="v_${def.key}">--${def.unit}</p>`;
+      card.addEventListener('click',()=> selectSensor(def.key));
+      return card;
+    }
+
+    function createDeviceTile(def) {
+      const tile = document.createElement('div');
+      tile.className='device-tile';
+      tile.style.background=def.color;
+      tile.innerHTML = `<h4>${def.label}</h4><div class="tile-btn" data-device="${def.key}"></div>`;
+      tile.addEventListener('click',()=> openDeviceControl(def.label));
+      return tile;
+    }
+
+    function createMemberItem(m) {
+      const div = document.createElement('div');
+      div.className='member';
       div.innerHTML=`<img src="${m.img}" alt="${m.name}"><div>${m.name}</div>`;
-      memberList.appendChild(div);
-    });
-
-    /* --------------------------- 디바이스 --------------------------- */
-    const devices=[
-      {id:'fan', label:'유동팬', color:'#8b5cf6', type:'switch'},
-      {id:'irrigation', label:'관수', color:'#f59e0b', type:'schedule'},
-      {id:'roofLeftOpen', label:'천창좌 열림', color:'#60a5fa', type:'schedule'},
-      {id:'roofLeftClose', label:'천창좌 닫힘', color:'#60a5fa', type:'schedule'},
-      {id:'roofRightOpen', label:'천창우 열림', color:'#60a5fa', type:'schedule'},
-      {id:'roofRightClose', label:'천창우 닫힘', color:'#60a5fa', type:'schedule'},
-      {id:'heater', label:'난방', color:'#ef4444', type:'temperature'},
-      {id:'dehumidifier', label:'제습', color:'#14b8a6', type:'humidity'},
-      {id:'thermalCurtainOpen', label:'보온 열림', color:'#f43f5e', type:'schedule'},
-      {id:'thermalCurtainClose', label:'보온 닫힘', color:'#f43f5e', type:'schedule'},
-      {id:'shadeOpen', label:'차광 열림', color:'#c084fc', type:'schedule'},
-      {id:'shadeClose', label:'차광 닫힘', color:'#c084fc', type:'schedule'}
-    ];
-    const grid=document.getElementById('deviceGrid');
-    devices.forEach(d=>{
-      const tile=document.createElement('div'); tile.className='device-tile'; tile.style.background=d.color;
-      tile.innerHTML=`<h4>${d.label}</h4><div class="tile-btn" data-device="${d.id}"></div>`;
-      grid.appendChild(tile);
-      // click open modal
-      tile.addEventListener('click', e=>{
-        if(e.target.classList.contains('tile-btn')) return; // toggle handled separately
-        openDeviceModal(d);
-      });
-      // toggle
-      tile.querySelector('.tile-btn').addEventListener('click', (e)=>{
-        e.stopPropagation();
-        const btn=e.currentTarget; btn.classList.toggle('active');
-        // TODO API call
-      });
-    });
-
-    /* ------------------ 디바이스 모달 로직 ------------------ */
-    const deviceModal=document.getElementById('deviceModal');
-    const deviceModalContent=document.getElementById('deviceModalContent');
-    function openDeviceModal(device){
-      let inner='';
-      if(device.type==='temperature'){
-        inner=`<h2>${device.label} 설정</h2>
-               <div class="form-field"><label>목표 온도(℃)</label><input type="number" min="5" max="40" step="0.5" value="25"></div>
-               <button onclick="closeDeviceModal()">적용</button>`;
-      }else if(device.type==='humidity'){
-        inner=`<h2>${device.label} 설정</h2>
-               <div class="form-field"><label>목표 습도(%)</label><input type="number" min="30" max="90" step="1" value="60"></div>
-               <button onclick="closeDeviceModal()">적용</button>`;
-      }else if(device.type==='schedule'){
-        inner=`<h2>${device.label} 스케줄</h2>
-               <div class="form-field"><label>시작 시간</label><input type="time" value="06:00"></div>
-               <div class="form-field"><label>종료 시간</label><input type="time" value="18:00"></div>
-               <button onclick="closeDeviceModal()">저장</button>`;
-      }else{
-        inner=`<h2>${device.label}</h2><p>스위치를 통해 ON/OFF 제어합니다.</p><button onclick="closeDeviceModal()">확인</button>`;
-      }
-      deviceModalContent.innerHTML=inner;
-      deviceModal.classList.add('show');
+      return div;
     }
-    function closeDeviceModal(){ deviceModal.classList.remove('show'); }
-    deviceModal.addEventListener('click',e=>{ if(e.target===deviceModal) closeDeviceModal(); });
 
-    /* --------------------------- Chart --------------------------- */
-    const ctx=document.getElementById('envChart').getContext('2d');
-    const labels=[]; const tempData=[]; const humData=[];
-    const chart=new Chart(ctx,{ type:'line', data:{labels,datasets:[{ label:'온도', data:tempData, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.15)', pointRadius:0, borderWidth:2, fill:true, tension:.4 },{ label:'습도', data:humData, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.15)', pointRadius:0, borderWidth:2, fill:true, tension:.4 }]}, options:{ maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{display:false}}, y:{grid:{color:'#e2e8f0'}, ticks:{display:false}} } } });
-    function pushChartPoint(){
-      const now=new Date(); labels.push(now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
-      tempData.push(sensors.internal.temp.toFixed(1)); humData.push(sensors.internal.hum.toFixed(1));
-      if(labels.length>24){ labels.shift(); tempData.shift(); humData.shift(); }
+    /* ─────────── Initial Rendering ─────────── */
+    const internalWrap = document.getElementById('internalSensors');
+    const externalWrap = document.getElementById('externalSensors');
+    internalSensorDefs.forEach(def=> internalWrap.appendChild(createSensorCard(def)));
+    externalSensorDefs.forEach(def=> externalWrap.appendChild(createSensorCard(def)));
+
+    const devicesGrid = document.getElementById('devicesGrid');
+    deviceDefs.forEach(def=> devicesGrid.appendChild(createDeviceTile(def)));
+
+    const memberList = document.getElementById('memberList');
+    members.forEach(m=> memberList.appendChild(createMemberItem(m)));
+
+    /* ─────────── Chart Setup ─────────── */
+    const ctx = document.getElementById('envChart').getContext('2d');
+    let chart;
+    function initChart() {
+      const datasets = currentSensors.map(key=>{
+        const def = [...internalSensorDefs, ...externalSensorDefs].find(d=>d.key===key);
+        return { label:def.label, data:[], borderColor:def.color, backgroundColor:def.color+'26', fill:true, tension:.35, borderWidth:2, pointRadius:0 };
+      });
+      chart = new Chart(ctx,{ type:'line', data:{ labels:[], datasets }, options:{ maintainAspectRatio:false, plugins:{ legend:{ labels:{ usePointStyle:true } } }, scales:{ x:{ grid:{ display:false } }, y:{ grid:{ color:'#e2e8f0' } } } } });
+    }
+
+    function updateChartData() {
+      const now = Date.now();
+      const filtered = sensorHistory[currentSensors[0]].filter(item=> (now - item.time) <= currentRangeSec*1000 );
+      const labels = filtered.map(item=> new Date(item.time).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+      chart.data.labels = labels;
+      currentSensors.forEach((key,idx)=>{
+        const dataArr = sensorHistory[key].filter(item=> (now - item.time) <= currentRangeSec*1000 ).map(item=> item.value);
+        chart.data.datasets[idx].data = dataArr;
+      });
       chart.update('quiet');
     }
-    pushChartPoint();
 
-    /* --------------------------- 로그인 모달 --------------------------- */
-    const profileBtn=document.getElementById('profileBtn');
-    const loginModal=document.getElementById('loginModal');
+    function selectSensor(key) {
+      if(key==='temp' || key==='hum') {
+        currentSensors = ['temp','hum'];
+      } else {
+        currentSensors = [key];
+      }
+      initChart();
+      updateChartData();
+    }
+
+    document.querySelectorAll('.range-select button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.range-select button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRangeSec = parseInt(btn.dataset.range,10);
+        updateChartData();
+      });
+    });
+
+    /* ─────────── Sensor Simulation ─────────── */
+    function simulateSensors(){
+      const now = Date.now();
+      internalSensorDefs.forEach(def=>{
+        const val = def.key==='temp'? 18+Math.random()*10 :
+                    def.key==='hum'? 40+Math.random()*40 :
+                    def.key==='soil'? 40+Math.random()*30 :
+                    def.key==='soilTension'? 10+Math.random()*20 :
+                    def.key==='co2'? 600+Math.random()*400 :
+                    def.key==='rad'? Math.random()*1000 : 0;
+        sensorData[def.key] = val;
+        sensorHistory[def.key].push({ time: now, value: val });
+        sensorHistory[def.key] = sensorHistory[def.key].filter(i=> now - i.time <= 86400*1000);
+        document.getElementById('v_'+def.key).textContent = `${val.toFixed(1)}${def.unit}`;
+      });
+      externalSensorDefs.forEach(def=>{
+        const val = def.key==='windDir'? Math.random()*360 :
+                    def.key==='windSpd'? Math.random()*8 :
+                    def.key==='outTemp'? 10+Math.random()*15 :
+                    def.key==='outHum'? 30+Math.random()*50 :
+                    def.key==='outRad'? Math.random()*1000 :
+                    def.key==='rain'? (Math.random()>0.8? 1 : 0) : 0;
+        sensorData[def.key] = val;
+        sensorHistory[def.key].push({ time: now, value: val });
+        sensorHistory[def.key] = sensorHistory[def.key].filter(i=> now - i.time <= 86400*1000);
+        document.getElementById('v_'+def.key).textContent = def.key==='rain' ? (val? '비 감지':'양호') : `${val.toFixed(1)}${def.unit}`;
+      });
+      document.getElementById('weatherMeta').innerHTML = `<i class='fa-solid fa-temperature-low'></i> ${sensorData.outTemp.toFixed(1)}°C · ${sensorData.outHum.toFixed(1)}%`;
+      updateChartData();
+    }
+
+    initChart();
+    simulateSensors();
+    setInterval(simulateSensors,30000);
+
+    /* ─────────── Device Control Placeholder ─────────── */
+    function openDeviceControl(label){
+      alert(`${label} 제어 창 (예: 난방이면 목표 온도 설정 버튼, 제습이면 % 설정 등)`);
+    }
+
+    /* ─────────── Toggles & Buttons ─────────── */
+    document.querySelectorAll('.tile-btn').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        btn.classList.toggle('active');
+      });
+    });
+
+    // Notification dropdown
+    const notifBtn=document.getElementById('notifBtn'); const notifPanel=document.getElementById('notifPanel');
+    notifBtn.addEventListener('click',()=>notifPanel.classList.toggle('show')); // 개발 후 데이터 바인딩
+
+    // Refresh
+    document.getElementById('refreshBtn').addEventListener('click',()=>location.reload());
+
+    // Theme switch
+    const themeBtn=document.getElementById('themeBtn');
+    themeBtn.addEventListener('click',()=>{
+      if(document.documentElement.getAttribute('data-theme')==='dark'){
+        document.documentElement.removeAttribute('data-theme'); localStorage.setItem('prefTheme','light');
+      } else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('prefTheme','dark'); }
+    });
+    if(localStorage.getItem('prefTheme')==='dark')document.documentElement.setAttribute('data-theme','dark');
+
+    // Login modal
+    const profileBtn=document.getElementById('profileBtn'); const loginModal=document.getElementById('loginModal');
     profileBtn.addEventListener('click',()=>loginModal.classList.add('show'));
     loginModal.addEventListener('click',e=>{ if(e.target===loginModal) loginModal.classList.remove('show'); });
     document.getElementById('loginForm').addEventListener('submit',e=>{ e.preventDefault(); loginModal.classList.remove('show'); alert('로그인 성공!'); });
-
   </script>
 </body>
 </html>
