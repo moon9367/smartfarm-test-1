@@ -290,6 +290,26 @@
     </div>
   </div>
 
+  <!-- Device Control Modal (제어 설정) -->
+<div class="modal" id="deviceModal">
+  <div class="modal-content">
+    <h2 id="deviceTitle">제어 설정</h2>
+
+    <form id="deviceForm">
+      <!-- 필요에 따라 필드 추가/수정 -->
+      <input type="number" id="targetValue"
+             placeholder="목표 온도 (°C) / 목표값" required />
+
+      <input type="time" id="scheduleTime"
+             placeholder="스케줄 시간" />
+
+      <button type="submit">설정</button>
+    </form>
+  </div>
+</div>
+<!-- /Device Control Modal -->
+
+
   <script>
     /* ─────────── Data & helpers ─────────── */
     const internalSensorDefs = [
@@ -453,10 +473,32 @@
     simulateSensors();
     setInterval(simulateSensors,30000);
 
-    /* ─────────── Device Control Placeholder ─────────── */
-    function openDeviceControl(label){
-      alert(`${label} 제어 창 (예: 난방이면 목표 온도 설정 버튼, 제습이면 % 설정 등)`);
-    }
+   /* ---------- Device Control 모달 ---------- */
+/* 1) alert() 대신 모달이 뜨도록 함수 교체 */
+function openDeviceControl(label) {
+  document.getElementById('deviceTitle').textContent = `${label} 제어 설정`;
+  document.getElementById('deviceModal').classList.add('show');
+}
+
+/* 2) 모달 바깥 클릭 시 닫기 */
+document.getElementById('deviceModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+});
+
+/* 3) 설정 버튼(폼) 전송 처리 */
+document.getElementById('deviceForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const value = document.getElementById('targetValue').value;
+  const time  = document.getElementById('scheduleTime').value;
+
+  // TODO: 실제 장치 제어 API 호출·스케줄 저장 등
+  console.log('목표값:', value, '스케줄:', time);
+
+  alert('설정 완료!');
+  document.getElementById('deviceModal').classList.remove('show');
+});
+
 
     /* ─────────── Toggles & Buttons ─────────── */
     document.querySelectorAll('.tile-btn').forEach(btn=>{
